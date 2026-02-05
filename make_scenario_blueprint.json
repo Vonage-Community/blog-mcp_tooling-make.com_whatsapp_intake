@@ -1,0 +1,490 @@
+{
+    "name": "Vonage Tooling MCP Integration",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 1807414,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": -230,
+                    "y": 12
+                },
+                "restore": {
+                    "parameters": {
+                        "hook": {
+                            "data": {
+                                "editable": "true"
+                            },
+                            "label": "Incoming Message2"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "hook",
+                        "type": "hook:gateway-webhook",
+                        "label": "Webhook",
+                        "required": true
+                    },
+                    {
+                        "name": "maxResults",
+                        "type": "number",
+                        "label": "Maximum number of results"
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "to",
+                        "type": "text"
+                    },
+                    {
+                        "name": "from",
+                        "type": "text"
+                    },
+                    {
+                        "name": "channel",
+                        "type": "text"
+                    },
+                    {
+                        "name": "message_uuid",
+                        "type": "text"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "text"
+                    },
+                    {
+                        "name": "message_type",
+                        "type": "text"
+                    },
+                    {
+                        "name": "text",
+                        "type": "text"
+                    },
+                    {
+                        "name": "context_status",
+                        "type": "text"
+                    },
+                    {
+                        "name": "profile",
+                        "spec": [
+                            {
+                                "name": "name",
+                                "type": "text"
+                            }
+                        ],
+                        "type": "collection"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 8,
+            "module": "gateway:WebhookRespond",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "body": "",
+                "status": "200",
+                "headers": []
+            },
+            "metadata": {
+                "designer": {
+                    "x": 47,
+                    "y": 13
+                },
+                "restore": {
+                    "expect": {
+                        "headers": {
+                            "mode": "chose"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "status",
+                        "type": "uinteger",
+                        "label": "Status",
+                        "required": true,
+                        "validate": {
+                            "min": 100
+                        }
+                    },
+                    {
+                        "name": "body",
+                        "type": "any",
+                        "label": "Body"
+                    },
+                    {
+                        "name": "headers",
+                        "spec": [
+                            {
+                                "name": "key",
+                                "type": "text",
+                                "label": "Key",
+                                "required": true,
+                                "validate": {
+                                    "max": 256
+                                }
+                            },
+                            {
+                                "name": "value",
+                                "type": "text",
+                                "label": "Value",
+                                "required": true,
+                                "validate": {
+                                    "max": 4096
+                                }
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Custom headers",
+                        "validate": {
+                            "maxItems": 16
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "id": 5,
+            "module": "ai-agent:RunAnAIAgent",
+            "version": 0,
+            "parameters": {},
+            "mapper": {
+                "agent": "cbd95eda-6773-4b04-a217-ab14d321c49a",
+                "timeout": "",
+                "messages": [
+                    "Customer WhatsApp number: {{1.from}}\n\nYou MUST send your reply using the tool:\nwhatsapp-send-text\nArguments:\n- to = {{1.from}}\n- message = the exact message text\n\nSend at most ONE WhatsApp message per run.\n",
+                    "{{1.text}}"
+                ],
+                "threadID": "{{1.from}}",
+                "outputType": "make-schema",
+                "outputSchema": [
+                    {
+                        "help": "",
+                        "name": "urgency",
+                        "type": "text",
+                        "label": "Urgency",
+                        "default": "",
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "estimated_price_min",
+                        "type": "number",
+                        "label": "Estimated price min",
+                        "default": "",
+                        "required": false
+                    },
+                    {
+                        "help": "",
+                        "name": "estimated_price_max",
+                        "type": "number",
+                        "label": "Estimated price max",
+                        "default": "",
+                        "required": false
+                    },
+                    {
+                        "help": "",
+                        "name": "issue_type",
+                        "type": "text",
+                        "label": "Issue Type",
+                        "default": "",
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "summary_for_plumber",
+                        "type": "text",
+                        "label": "Summary for plumber",
+                        "default": "",
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "message_sent_to_customer",
+                        "type": "text",
+                        "label": "Message sent to customer",
+                        "default": "",
+                        "required": false,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "agent_action",
+                        "type": "text",
+                        "label": "Agent Action",
+                        "default": "",
+                        "required": false,
+                        "multiline": false
+                    }
+                ],
+                "additionalSystemPrompt": ""
+            },
+            "metadata": {
+                "designer": {
+                    "x": 411,
+                    "y": 12,
+                    "messages": [
+                        {
+                            "category": "share",
+                            "severity": "warning",
+                            "message": "This module may contain parts which cannot be shared completely."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "agent": {
+                            "label": "Plumber Intake + Dispatcher"
+                        },
+                        "messages": {
+                            "mode": "chose",
+                            "items": [
+                                null,
+                                null
+                            ]
+                        },
+                        "outputType": {
+                            "label": "Make Schema"
+                        },
+                        "outputSchema": {
+                            "items": [
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                            ]
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "agent",
+                        "type": "aiagent",
+                        "label": "Agent",
+                        "required": true
+                    },
+                    {
+                        "name": "threadID",
+                        "type": "text",
+                        "label": "Thread ID",
+                        "validate": {
+                            "max": 256
+                        }
+                    },
+                    {
+                        "name": "additionalSystemPrompt",
+                        "type": "text",
+                        "label": "Additional system instructions"
+                    },
+                    {
+                        "name": "messages",
+                        "spec": {
+                            "name": "value",
+                            "type": "text",
+                            "label": "Message"
+                        },
+                        "type": "array",
+                        "label": "Messages"
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Timeout",
+                        "validate": {
+                            "max": 600,
+                            "min": 120
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Output schema",
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "outputSchema",
+                        "spec": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "label": "Name",
+                                "required": true,
+                                "placeholder": "Enter name"
+                            },
+                            {
+                                "name": "label",
+                                "type": "text",
+                                "label": "Label"
+                            },
+                            {
+                                "name": "help",
+                                "type": "text",
+                                "label": "Description",
+                                "placeholder": "Enter description"
+                            },
+                            {
+                                "name": "type",
+                                "type": "udttype",
+                                "label": "Type",
+                                "required": true
+                            }
+                        ],
+                        "type": "udtspec",
+                        "label": "Output structure"
+                    }
+                ],
+                "advanced": true
+            }
+        },
+        {
+            "id": 9,
+            "module": "datastore:AddRecord",
+            "version": 1,
+            "parameters": {
+                "datastore": 73837
+            },
+            "mapper": {
+                "key": "{{1.message_uuid}}",
+                "data": {
+                    "urgency": "{{5.jsonResponse.urgency}}",
+                    "price_max": "{{5.jsonResponse.estimated_price_max}}",
+                    "price_min": "{{5.jsonResponse.estimated_price_min}}",
+                    "issue_type": "{{5.jsonResponse.issue_type}}",
+                    "customer_number": "{{1.from}}",
+                    "last_message_at": "{{now}}",
+                    "summary_for_plumber": "{{5.jsonResponse.summary_for_plumber}}"
+                },
+                "overwrite": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 712,
+                    "y": 10,
+                    "messages": [
+                        {
+                            "category": "share",
+                            "severity": "warning",
+                            "message": "This module may contain parts which cannot be shared completely."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "overwrite": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "datastore": {
+                            "label": "processed_inbound_messages"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "datastore",
+                        "type": "datastore",
+                        "label": "Data store",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "key",
+                        "type": "text",
+                        "label": "Key"
+                    },
+                    {
+                        "name": "overwrite",
+                        "type": "boolean",
+                        "label": "Overwrite an existing record",
+                        "required": true
+                    },
+                    {
+                        "name": "data",
+                        "spec": [
+                            {
+                                "name": "customer_number",
+                                "type": "text",
+                                "label": "Customer number"
+                            },
+                            {
+                                "name": "last_message_at",
+                                "type": "text",
+                                "label": "Last message at"
+                            },
+                            {
+                                "name": "issue_type",
+                                "type": "text",
+                                "label": "Issue type"
+                            },
+                            {
+                                "name": "urgency",
+                                "type": "text",
+                                "label": "Urgency"
+                            },
+                            {
+                                "name": "summary_for_plumber",
+                                "type": "text",
+                                "label": "Summary for plumber"
+                            },
+                            {
+                                "name": "price_min",
+                                "type": "number",
+                                "label": "Price min"
+                            },
+                            {
+                                "name": "price_max",
+                                "type": "number",
+                                "label": "Price max"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Record"
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}

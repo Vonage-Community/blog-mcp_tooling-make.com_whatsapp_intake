@@ -1,0 +1,10 @@
+{
+  "customer_number": "16462364506",
+  "last_message_at": "2026-01-30T11:25:00Z",
+  "issue_type": "slow drain",
+  "urgency": "low",
+  "summary_for_plumber": "Bathroom sink draining slowly; no flooding; shut-off accessible.",
+  "price_min": 80,
+  "price_max": 150,
+  "status": "pending-customer"
+}

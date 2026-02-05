@@ -1,150 +1,177 @@
-AI WhatsApp Intake Agent (Make + Vonage MCP)
+# AI WhatsApp Intake Agent (Make + Vonage MCP)
 
-This repo contains everything you need to quickly deploy the AI-powered WhatsApp intake assistant described in the blog post:
+Companion quickstart repo for the tutorial:
 
-📘 Read the full walkthrough: Unclog Your Inbound Leads with WhatsApp Using Make + Vonage MCP
+**Unclog Your Inbound Leads with WhatsApp Using Make + Vonage MCP**
 
-This README focuses on the quickstart path to get you up and running fast.
+This AI WhatsApp intake agent (Make.com + OpenAI + Vonage MCP tools) helps a plumbing business:
 
-1. Prerequisites
+- reply to inbound WhatsApp messages
+- triage urgency
+- escalate emergencies via SMS or outbound voice calls
+- log clean structured records into a Make Data Store (lightweight CRM)
 
-You’ll need:
+This README focuses on the quickstart path so you can get the demo running in a few minutes.
 
-Make.com account
+## What you’ll set up (high level)
 
-Active scenario with access to Webhooks, HTTP, OpenAI, and Data Store modules.
+- A Vonage Application with Messages + Voice enabled and a WhatsApp number
+- A hosted MCP Bridge on Render that exposes `https://YOUR-APP.onrender.com/mcp`
+- A Make scenario that receives inbound WhatsApp webhooks from Vonage, runs an AI Agent, and logs results to a Data Store
 
-Vonage account
+## Prerequisites
 
-API key and secret.
+- [Make.com account](https://www.make.com/en/register)
+- [Vonage API account](https://dashboard.vonage.com/sign-up)
+  - A WhatsApp Business Account (WABA) / WhatsApp-enabled number
+- [OpenAI account](https://platform.openai.com/docs/overview) (or another LLM provider)
+- [Render account](https://dashboard.render.com/register)
 
-A Vonage Application with Messages and Voice enabled.
+## Quickstart (non-developer friendly)
 
-A WhatsApp-enabled phone number (WABA).
+### Step 1) Create a Vonage Application (Messages + Voice)
 
-OpenAI account (or another LLM provider)
+In the Vonage Dashboard:
 
-API key and access to GPT-4 (or GPT-3.5).
+1. Create a new Vonage Application (or reuse an existing one).
+2. Enable:
+   - Messages
+   - Voice
+3. For Messages webhooks, set placeholders for now:
+   - Inbound URL: `https://placeholder.com/inbound`
+   - Status URL: `https://placeholder.com/status`
+4. Link your WhatsApp Business Account (WABA) to the application.
 
-Render account
+Keep these values handy:
 
-To deploy the MCP Bridge service.
+- `VONAGE_API_KEY`
+- `VONAGE_API_SECRET`
+- `VONAGE_APPLICATION_ID`
+- Your application private key (downloaded `.key` file)
+- Your Vonage virtual number and WhatsApp number (E.164 format)
 
-(Optional) GitHub account if you're contributing to the MCP tooling.
+### Step 2) Deploy the Vonage MCP Bridge to Render
 
-2. Clone or Copy This Repository
+Make needs a public HTTPS endpoint to talk to an MCP server. The bridge hosts a single endpoint:
 
-This repo includes:
+- `https://YOUR-RENDER-APP.onrender.com/mcp`
 
-make_scenario_blueprint.json – a sample Make scenario for WhatsApp intake.
+Deploy the bridge using the Render blueprint in the bridge repo (from the tutorial).
 
-process_inbound_message_schema.json – structure for the Make Data Store.
+During deployment set these environment variables in Render:
 
-.env.example – reference for environment variables used by the Render MCP bridge.
+- `VONAGE_API_KEY`
+- `VONAGE_API_SECRET`
+- `VONAGE_APPLICATION_ID`
+- `VONAGE_PRIVATE_KEY64` (your `.key` file base64-encoded)
+- `VONAGE_VIRTUAL_NUMBER`
+- `VONAGE_WHATSAPP_NUMBER`
+- `MCP_AUTH_TOKEN` (a long random token; you’ll paste this into Make later)
 
-3. Create a Vonage Application
+When Render finishes deploying, copy your MCP URL:
 
-Go to your Vonage Dashboard
-.
+- `https://YOUR-RENDER-APP.onrender.com/mcp`
 
-Create a new application or use an existing one.
+Note: Render free instances can sleep when idle. If Make says it can’t reach your MCP server, restart/redeploy the service in Render or upgrade the plan.
 
-Enable Messages and Voice.
+### Step 3) Create the Make Data Store (CRM)
 
-Set placeholder webhooks for now:
+In Make:
 
-Inbound URL: https://placeholder.com/inbound
+1. Go to Data Stores.
+2. Click Add data store.
+3. Name it: `processed_inbound_messages`
+4. Create a new Data structure from JSON.
 
-Status URL: https://placeholder.com/status
+Paste this JSON to generate the schema (also available in this repo as `process_inbound_message_schema.json`):
 
-Link your WhatsApp Business Account (WABA).
+```json
+{
+  "customer_number": "16462364506",
+  "last_message_at": "2026-01-30T11:25:00Z",
+  "issue_type": "slow drain",
+  "urgency": "low",
+  "summary_for_plumber": "Bathroom sink draining slowly; no flooding; shut-off accessible.",
+  "price_min": 80,
+  "price_max": 150,
+  "status": "pending-customer"
+}
+```
 
-Save your:
+Save the data structure.
 
-API_KEY, API_SECRET
+### Step 4) Create the Make scenario
 
-APPLICATION_ID
+Recommended (easiest): use the public shared Make scenario:
 
-Private key .key file (will be base64 encoded for the MCP bridge)
+- https://us2.make.com/public/shared-scenario/it5YTv5H65X/vonage-tooling-mcp-integration
 
-WhatsApp virtual number
+Open the link and choose the option to create your own copy in Make.
 
-4. Deploy the MCP Bridge to Render
+Fallback (advanced): import `make_scenario_blueprint.json` from this repo into Make.
 
-The AI agent uses Vonage MCP tools via a simple /mcp endpoint hosted on Render.
+### Step 5) Connect the inbound webhook (Make → Vonage)
 
-Deploy Steps:
+In Make:
 
-Fork or clone this MCP bridge repo
-.
+1. Open the scenario.
+2. Click the first module (Custom Webhook).
+3. Create a webhook (example name: `Incoming Vonage Message`).
+4. Copy the generated webhook URL.
 
-Click the "Deploy to Render" button in that repo.
+In Vonage:
 
-Set the following environment variables in Render:
+1. Open your Vonage Application settings.
+2. In the Messages capability, set Inbound URL to the Make webhook URL.
+3. Save.
 
-VONAGE_API_KEY, VONAGE_API_SECRET
+At this point, inbound WhatsApp messages should reach Make.
 
-VONAGE_APPLICATION_ID, VONAGE_PRIVATE_KEY64 (base64 of your .key)
+### Step 6) Connect the AI Agent to MCP + OpenAI
 
-VONAGE_VIRTUAL_NUMBER, VONAGE_WHATSAPP_NUMBER
+In the scenario:
 
-MCP_AUTH_TOKEN (a long, random token)
+1. Open the AI Agent module.
+2. Set/confirm your OpenAI connection (API key) and model.
+3. In the MCP section:
+   - MCP URL: `https://YOUR-RENDER-APP.onrender.com/mcp`
+   - Auth: Bearer token
+   - Token: your `MCP_AUTH_TOKEN`
 
-Once deployed, note the MCP bridge URL:
-https://your-app.onrender.com/mcp
+### Step 7) Turn it on and test
 
-5. Import and Configure the Make Scenario
+1. Save the scenario.
+2. Turn the scenario ON.
+3. Send a WhatsApp message to your Vonage WhatsApp number.
 
-In Make, click Scenarios → Create new.
+You should see:
 
-Use the JSON from make_scenario_blueprint.json to import.
+- a scenario run in Make
+- an AI response sent back to WhatsApp
+- a record written to the Make Data Store
 
-Set up your modules:
+## Troubleshooting
 
-Replace webhook placeholders with your Make-generated URL.
+- Make says it can’t connect to MCP
+  - Your Render service may be sleeping. Restart/redeploy it in Render and try again.
+  - Confirm the MCP URL ends with `/mcp`.
+  - Confirm Make uses Bearer auth and the token matches `MCP_AUTH_TOKEN`.
 
-Connect the MCP Client node to:
+- No Make executions when you message WhatsApp
+  - Confirm the Vonage Messages Inbound URL matches your Make webhook URL.
+  - Confirm the Vonage Application is linked to the correct WhatsApp number/WABA.
 
-Your Render /mcp endpoint
+- Data Store write fails
+  - Confirm the data store exists and is selected in the Data Store module.
+  - Regenerate the data structure from the provided JSON and reselect it.
 
-Your MCP_AUTH_TOKEN via Bearer token auth
+## Repo contents
 
-Set your OpenAI credentials and preferred model (e.g., gpt-4.0).
+- `make_scenario_blueprint.json` (backup import path)
+- `process_inbound_message_schema.json` (Data Store schema starter)
 
-Create a Data Store using process_inbound_message_schema.json as the structure.
+## Resources
 
-6. Final Setup
-
-In Vonage Dashboard, update the Messages Inbound URL to point to your Make webhook URL.
-
-Save and activate your scenario.
-
-Test the full flow by sending a WhatsApp message to your Vonage number.
-
-✅ You’re Done!
-
-Your AI WhatsApp agent can now:
-
-Respond to incoming WhatsApp messages using GPT-4.
-
-Escalate urgent issues via SMS or voice calls.
-
-Log structured data to a Make Data Store (acting as a lightweight CRM).
-
-Optional: Extend the Agent
-
-Add support for photo uploads (see blog challenge).
-
-Include address, availability, or other custom fields in the AI prompt and schema.
-
-Trigger Slack or email summaries for low-urgency issues.
-
-Integrate with calendars, pricing tools, or external CRMs.
-
-Resources
-
-📘 Full Blog Post →
-
-🛠 Vonage MCP Tooling Server (GitHub)
-
-💬 Join the Community on Slack
+- Tutorial: [(Unclog Your Inbound Leads with WhatsApp Using Make + Vonage MCP)](https://developer.vonage.com/en/blog)
+- 9Vonage MCP Tooling Serve)[https://developer.vonage.com/en/blog/introducing-the-vonage-mcp-tooling-server]
+- (Vonage Community Slack)[https://developer.vonage.com/en/community/slack]
