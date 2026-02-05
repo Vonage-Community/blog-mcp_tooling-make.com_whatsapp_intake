@@ -172,6 +172,6 @@ You should see:
 
 ## Resources
 
-- Tutorial: (Unclog Your Inbound Leads with WhatsApp Using Make + Vonage MCP)[https://developer.vonage.com/en/blog]
-- (Vonage MCP Tooling Serve)[https://developer.vonage.com/en/blog/introducing-the-vonage-mcp-tooling-server]
-- (Vonage Community Slack)[https://developer.vonage.com/en/community/slack]
+- Tutorial: [Unclog Your Inbound Leads with WhatsApp Using Make + Vonage MCP](https://developer.vonage.com/en/blog
+- [Vonage MCP Tooling Serve](https://developer.vonage.com/en/blog/introducing-the-vonage-mcp-tooling-server)
+- [Vonage Community Slack](https://developer.vonage.com/en/community/slack)
